@@ -41,17 +41,20 @@ func calculateNPV(investment int, cashflows []int, interestRate float64) (float6
 	// calculate NPV
 	var presentValue []float64
 	var result float64
+
 	for i := 0; i < len(cashflows); i++ {
-		result = float64(cashflows[i]) / math.Pow(1+interestRate, float64(i+1))
+		interest := 1 / math.Pow(1+interestRate, float64(i+1))
+		fmt.Println(interest)
+		result = float64(cashflows[i]) * interest
 		presentValue = append(presentValue, result)
 	}
 	// print present value
-	//fmt.Printf("Present value is: %.2f \n", presentValue)
+	fmt.Printf("Present value is: %.2f \n", presentValue)
 	// sum all values in presentValue array
 	var sum float64
 	for i := 0; i < len(presentValue); i++ {
 		sum += presentValue[i]
 	}
-	//fmt.Printf("Sum of present value is: %.2f \n\n", sum)
+	fmt.Printf("Sum of present value is: %.2f \n\n", sum)
 	return sum - float64(investment), presentValue
 }
