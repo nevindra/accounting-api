@@ -8,7 +8,7 @@ import (
 
 func IRRRoutes(rg *gin.RouterGroup) {
 	ping := rg.Group("/IRR")
-	ping.POST("/", getIRR)
+	ping.POST("/", GetIRR)
 }
 
 type IRR struct {
@@ -18,7 +18,7 @@ type IRR struct {
 	SecondRate float64 `json:"SecondRate"`
 }
 
-func getIRR(c *gin.Context) {
+func GetIRR(c *gin.Context) {
 	var (
 		irr IRR
 	)

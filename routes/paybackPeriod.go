@@ -7,7 +7,7 @@ import (
 
 func PaybackPeriodRoutes(rg *gin.RouterGroup) {
 	ping := rg.Group("/PP")
-	ping.POST("/", calculatepaybackPeriod)
+	ping.POST("/", CalculatepaybackPeriod)
 }
 
 type PaybackPeriod struct {
@@ -16,7 +16,7 @@ type PaybackPeriod struct {
 	Cashflows  []float64 `json:"cashflows"`
 }
 
-func calculatepaybackPeriod(c *gin.Context) {
+func CalculatepaybackPeriod(c *gin.Context) {
 	var (
 		pp                  PaybackPeriod
 		paybackPeriod       float64
