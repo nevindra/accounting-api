@@ -23,22 +23,27 @@ func CalculatepaybackPeriod(c *gin.Context) {
 		accumulatedCashflow float64
 		cashBeforePeriod    float64
 	)
-	c.ShouldBindJSON(&pp)
-
+	err := c.ShouldBindJSON(&pp)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "error",
+			"error":  err.Error(),
+		})
+		return
+	}
+	// get exact period and accumulated cashflow in the period
 	paybackPeriod, accumulatedCashflow = calculatePeriod(pp.Investment, pp.Cashflows)
 	for i := 0; i < int(paybackPeriod); i++ {
 		cashBeforePeriod += pp.Cashflows[i]
 	}
-	//fmt.Printf("Cash before period %.2f is  %.2f \n", paybackPeriod, cashBeforePeriod)
-	//fmt.Printf("Accumulated cashflow: %.2f \n", accumulatedCashflow)
+
 	paybackPeriod = paybackPeriod + ((pp.Investment - cashBeforePeriod) / (accumulatedCashflow - cashBeforePeriod))
-	//fmt.Printf("Payback period in %.2f \n", paybackPeriod)
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":              "success",
 		"paybackPeriod":       paybackPeriod,
 		"accumulatedCashflow": accumulatedCashflow,
 		"cashBeforePeriod":    cashBeforePeriod,
+		"message":             "The payback period is calculated",
 	})
 }
 

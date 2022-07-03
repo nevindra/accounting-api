@@ -14,6 +14,7 @@ func IRRRoutes(rg *gin.RouterGroup) {
 type IRR struct {
 	Investment int     `json:"investment"`
 	Cashflows  []int   `json:"cashflows"`
+	Baseline   float64 `json:"baseline"`
 	FirstRate  float64 `json:"firstRate"`
 	SecondRate float64 `json:"SecondRate"`
 }
@@ -22,18 +23,27 @@ func GetIRR(c *gin.Context) {
 	var (
 		irr IRR
 	)
-	c.ShouldBindJSON(&irr)
+	err := c.ShouldBindJSON(&irr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "error",
+			"error":  err.Error(),
+		})
+		return
+	}
 
 	result := calculateIRR(irr.Investment, irr.Cashflows, irr.FirstRate/100, irr.SecondRate/100)
-	if result > 10 {
+	if result > irr.Baseline {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "IRR is positve",
-			"IRR":    result,
+			"positive": true,
+			"IRR":      result,
+			"message":  "The IRR is higher than the baseline",
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "IRR is negative",
-			"IRR":    result,
+			"positive": false,
+			"IRR":      result,
+			"message":  "The IRR is lower than the baseline",
 		})
 	}
 }
@@ -45,15 +55,10 @@ func calculateIRR(investment int, cashflows []int, interestRate1 float64, intere
 
 	NPV1, _ = calculateNPV(investment, cashflows, interestRate1)
 	NPV2, _ = calculateNPV(investment, cashflows, interestRate2)
-	//fmt.Println("NPV1: ", NPV1)
-	//fmt.Println("NPV2: ", NPV2)
 
 	rateDif := interestRate1 - interestRate2
-	//fmt.Println(rateDif)
 	NPVDif := math.Abs(NPV1 - NPV2)
-	//fmt.Println(NPVDif)
 	PVInitial := NPV1 - float64(investment)
-	//fmt.Println(PVInitial)
 	IRR := interestRate1 + (NPVDif/PVInitial)*rateDif
 	return IRR * 100
 }

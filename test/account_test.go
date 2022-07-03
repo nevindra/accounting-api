@@ -25,7 +25,7 @@ func TestPaybackPeriodRoutes(t *testing.T) {
 	PaybackPeriodRoutes(r)
 	w := PerformRequest(r, "POST", "/v1/paybackperiod", getPaybackPeriodJSON())
 	assert.Equal(t, http.StatusOK, w.Code)
-	mockResponse := `{"accumulatedCashflow":950,"cashBeforePeriod":600,"paybackPeriod":3.4285714285714284,"status":"success"}`
+	mockResponse := `{\"accumulatedCashflow\":950,\"cashBeforePeriod\":600,\"message\":\"The payback period is calculated\",\"paybackPeriod\":3.4285714285714284}`
 	assert.Equal(t, mockResponse, w.Body.String())
 }
 
@@ -40,7 +40,7 @@ func TestNPVRoutes(t *testing.T) {
 	NPVRoutes(r)
 	w := PerformRequest(r, "POST", "/v1/npv", getNPVJSON())
 	assert.Equal(t, http.StatusOK, w.Code)
-	mockResponse := `{"NPV":-164140.5450285084,"flag":false,"status":"success"}`
+	mockResponse := `{\"NPV\":-164140.5450285084,\"message\":\"The NPV is lower than 0\",\"positive\":false}"`
 	assert.Equal(t, mockResponse, w.Body.String())
 }
 
@@ -64,7 +64,7 @@ func TestIRRRoutes(t *testing.T) {
 	IRRRoutes(r)
 	w := PerformRequest(r, "POST", "/v1/irr", getIRRJSON())
 	assert.Equal(t, http.StatusOK, w.Code)
-	mockResponse := `{"IRR":15.213177583560554,"status":"IRR is positve"}`
+	mockResponse := `{\"IRR\":15.213177583560554,\"message\":\"The IRR is higher than the baseline\",\"positive\":true}"`
 	assert.Equal(t, mockResponse, w.Body.String())
 }
 

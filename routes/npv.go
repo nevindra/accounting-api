@@ -20,39 +20,47 @@ func NPVRoutes(rg *gin.RouterGroup) {
 
 func GetNPV(c *gin.Context) {
 	var npv NPV
-	var flag bool
-	c.ShouldBindJSON(&npv)
-	result, _ := calculateNPV(npv.Investment, npv.Cashflows, npv.InterestRate/100)
-	//fmt.Printf("NPV is: %.2f \n", result)
-	if result > 0 {
-		flag = true
-	} else {
-		flag = false
+	err := c.ShouldBindJSON(&npv)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "error",
+			"error":  err.Error(),
+		})
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"NPV":    result,
-		"flag":   flag,
-	})
+	result, _ := calculateNPV(npv.Investment, npv.Cashflows, npv.InterestRate/100)
+
+	if result > 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"positive": true,
+			"NPV":      result,
+			"message":  "The NPV is higher than 0",
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"positive": false,
+			"NPV":      result,
+			"message":  "The NPV is lower than 0",
+		})
+	}
+
 }
 
 func calculateNPV(investment int, cashflows []int, interestRate float64) (float64, []float64) {
-	// calculate NPV
+
 	var presentValue []float64
 	var result float64
 
+	// calculate present value for each cashflow
 	for i := 0; i < len(cashflows); i++ {
-		interest := 1 / math.Pow(1+interestRate, float64(i+1))
-		result = float64(cashflows[i]) * interest
+		result = float64(cashflows[i]) * 1 / math.Pow(1+interestRate, float64(i+1))
 		presentValue = append(presentValue, result)
 	}
-	// print present value
-	//fmt.Printf("Present value is: %.2f \n", presentValue)
-	// sum all values in presentValue array
+
+	// caluclate NPV
 	var sum float64
 	for i := 0; i < len(presentValue); i++ {
 		sum += presentValue[i]
 	}
-	//fmt.Printf("Sum of present value is: %.2f \n\n", sum)
 	return sum - float64(investment), presentValue
 }
