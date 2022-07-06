@@ -40,7 +40,7 @@ func TestNPVRoutes(t *testing.T) {
 	NPVRoutes(r)
 	w := PerformRequest(r, "POST", "/v1/npv", getNPVJSON())
 	assert.Equal(t, http.StatusOK, w.Code)
-	mockResponse := `{"NPV":-164140.5450285084,"message":"The NPV is lower than 0","positive":false}`
+	mockResponse := `{"NPV":-2830.0572044988803,"PV":147169.94279550112,"message":"The NPV is lower than 0","positive":false}`
 	assert.Equal(t, mockResponse, w.Body.String())
 }
 
@@ -51,11 +51,11 @@ func NPVRoutes(r *gin.Engine) {
 
 func getNPVJSON() io.ReadCloser {
 	return ioutil.NopCloser(strings.NewReader(`{
-    "investment": 700000,
-    "period":3,
-    "cashflows": [100000,350000,250000],
-    "interestRate": 13
-    }`))
+    "investment": 150000,
+    "period":5, 
+    "cashflows": [60000,50000,40000,35000,28000],
+    "interestRate": 16
+}`))
 }
 
 func TestIRRRoutes(t *testing.T) {
@@ -64,7 +64,7 @@ func TestIRRRoutes(t *testing.T) {
 	IRRRoutes(r)
 	w := PerformRequest(r, "POST", "/v1/irr", getIRRJSON())
 	assert.Equal(t, http.StatusOK, w.Code)
-	mockResponse := `{"IRR":15.213177583560554,"message":"The IRR is higher than the baseline","positive":true}`
+	mockResponse := `{"IRR":15.15274875675059,"message":"The IRR is higher than the baseline","positive":true}`
 	assert.Equal(t, mockResponse, w.Body.String())
 }
 
@@ -79,7 +79,8 @@ func getIRRJSON() io.ReadCloser {
     "period":5, 
     "cashflows": [60000,50000,40000,35000,28000],
     "firstRate":16,
-    "secondRate":10
+    "secondRate":10,
+    "baseline":10
     }`))
 }
 

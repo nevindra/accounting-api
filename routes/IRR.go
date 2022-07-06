@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"math"
 	"net/http"
@@ -12,7 +13,7 @@ func IRRRoutes(rg *gin.RouterGroup) {
 }
 
 type IRR struct {
-	Investment int     `json:"investment"`
+	Investment float64 `json:"investment"`
 	Cashflows  []int   `json:"cashflows"`
 	Baseline   float64 `json:"baseline"`
 	FirstRate  float64 `json:"firstRate"`
@@ -23,6 +24,7 @@ func GetIRR(c *gin.Context) {
 	var (
 		irr IRR
 	)
+
 	err := c.ShouldBindJSON(&irr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -32,7 +34,7 @@ func GetIRR(c *gin.Context) {
 		return
 	}
 
-	result := calculateIRR(irr.Investment, irr.Cashflows, irr.FirstRate/100, irr.SecondRate/100)
+	result := irr.calculateIRR(irr.Investment, irr.Cashflows, irr.FirstRate/100, irr.SecondRate/100, irr.Baseline/100)
 	if result > irr.Baseline {
 		c.JSON(http.StatusOK, gin.H{
 			"positive": true,
@@ -48,17 +50,25 @@ func GetIRR(c *gin.Context) {
 	}
 }
 
-func calculateIRR(investment int, cashflows []int, interestRate1 float64, interestRate2 float64) float64 {
+func (data IRR) calculateIRR(investment float64, cashflows []int, interestRate1 float64, interestRate2 float64, baseline float64) float64 {
 	var (
-		NPV1, NPV2 float64
+		PV1, PV2  float64
+		rateDif   float64
+		PVInitial float64
 	)
 
-	NPV1, _ = calculateNPV(investment, cashflows, interestRate1)
-	NPV2, _ = calculateNPV(investment, cashflows, interestRate2)
-
-	rateDif := interestRate1 - interestRate2
-	NPVDif := math.Abs(NPV1 - NPV2)
-	PVInitial := NPV1 - float64(investment)
-	IRR := interestRate1 + (NPVDif/PVInitial)*rateDif
+	PV1, _ = CalculatePV(cashflows, interestRate1)
+	PV2, _ = CalculatePV(cashflows, interestRate2)
+	rateDif = math.Abs(interestRate1 - interestRate2)
+	PVDifference := math.Abs(PV1 - PV2)
+	fmt.Println("PV Different:", PVDifference)
+	if PV1 > PV2 {
+		PVInitial = PV1 - investment
+	} else {
+		PVInitial = PV2 - investment
+	}
+	fmt.Println("Selisih Modal:", PVInitial)
+	fmt.Println(PVDifference / PVInitial)
+	IRR := baseline + (PVInitial/PVDifference)*rateDif
 	return IRR * 100
 }
